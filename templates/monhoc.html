@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Môn học</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            background-color: white;
+
+        }
+
+        .menu h2 {
+            margin-left: 20px;
+            margin-right: 82px;
+        }
+        /* Định dạng khung bên trái (sidebar) */
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            color: blue;
+            padding: 20px;
+            box-sizing: border-box;
+            float: left;
+        }
+
+        /* Định dạng menu dọc */
+        .vertical-menu {
+            width: 100%;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: blue;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #808080;
+        }
+
+        /* Định dạng phần nội dung bên phải */
+        .content {
+            margin-left: 270px;
+            /* Để tạo khoảng cách giữa sidebar và content */
+            padding: 20px;
+            background-color: #EEEEEE;
+
+
+        }
+
+
+
+        /* Định dạng ô nhập thông tin môn học */
+        .input-container {
+
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        input[type="text"] {
+            flex: 2;
+            padding: 10px;
+            margin-right: 30px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 50px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+        .message.success {
+            color: green;
+        }
+        .message.error {
+            color: red;
+    </style>
+</head>
+
+<body>
+    <div class="menu">
+        <h2>Phòng đào tạo </h2>
+        <h2><input type="search" id="search" name="search" placeholder="Quick search" style="width: 981px; height: 36px;"></h2>
+    </div>
+    <!-- Khung bên trái (sidebar) -->
+    <div class="sidebar">
+        <div class="vertical-menu">
+            <a href="{{ url_for('them_don_vi_phi_page') }}" class="menu-item">Thiết lập đơn vị tính</a>
+            <a href="{{ url_for('them_mon_hoc') }}" class="menu-item">Quản lý môn học</a>
+            <a href="{{url_for ('them_sinh_vien_page') }}" class="menu-item">Thêm Sinh Viên</a>
+            <a href="{{ url_for ('them_dang_ki_mon_hoc_page')}}" class="menu-item">Quản lý kì học</a>
+            <a href="{{url_for ('quan_ly_hoc_phi')}}" class="menu-item">Quản lý học phí</a>
+        </div>
+    </div>
+
+    <!-- Nội dung bên phải (content) -->
+    <div class="content">
+        <h1>Thông tin môn học</h1>
+        <div class="input-container">
+            <label for="courseCode">Mã môn học:</label>
+            <input type="text" id="courseCode" name="courseCode" placeholder="Nhập mã môn học">
+            <label for="credit">Số tín chỉ:</label>
+            <input type="text" id="credit" name="credit" placeholder="Nhập số tín chỉ">
+        </div>
+        <div class="input-container">
+            <label for="courseName">Tên môn học:</label>
+            <input type="text" id="courseName" name="courseName" placeholder="Nhập tên môn học">
+            <label for="coefficient">Hệ số:</label>
+            <input type="text" id="coefficient" name="coefficient" placeholder="Nhập hệ số">
+        </div>
+        <button onclick="themMonHoc()">Thêm Môn Học</button>
+        <div id="message" class="message" style="margin-top: 10px"></div>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Mã Môn</th>
+                    <th>Tên môn</th>
+                    <th>Số tín chỉ</th>
+                    <th>Hệ số tín</th>
+                </tr>
+            </thead>
+            <tbody id="monHocTableBody"></tbody>
+        </table>
+    </div>
+</body>
+<script>
+function themMonHoc() {
+        // Get the values of the input fields
+        var courseCode = document.getElementById("courseCode").value;
+        var courseName = document.getElementById("courseName").value;
+        var credit = document.getElementById("credit").value;
+        var coefficient = document.getElementById("coefficient").value;
+
+        // Create a FormData object to send data as a POST request
+        var formData = new FormData();
+        formData.append("ma_mon_hoc", courseCode);
+        formData.append("ten_mon", courseName);
+        formData.append("so_tin_chi", credit);
+        formData.append("he_so_mon", coefficient);
+
+        // Send a POST request to your API endpoint
+        fetch('/them_mon_hoc', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                document.getElementById("message").textContent = data.message;
+                document.getElementById("message").style.color = 'green'
+            } else if (data.error) {
+                document.getElementById("message").textContent = data.error;
+                document.getElementById("message").style.color = 'red'
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    function loadMonHocList() {
+        fetch('/lay_danh_sach_mon_hoc', {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.mon_hoc_list) {
+                // Clear any previous data
+                var tableBody = document.getElementById("monHocTableBody");
+                tableBody.innerHTML = '';
+
+                // Populate the table with the retrieved course list
+                data.mon_hoc_list.forEach(function(course) {
+                    var row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${course.ma_mon_hoc}</td>
+                        <td>${course.ten_mon}</td>
+                        <td>${course.so_tin_chi}</td>
+                        <td>${course.he_so_mon}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                // Handle errors or display a message if needed
+                console.error('Error:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // Call the function to load the course list when the page loads
+    window.onload = loadMonHocList;
+
+</script>
+</html>

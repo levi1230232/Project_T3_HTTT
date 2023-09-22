@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinh viên</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            background-color: white;
+
+        }
+
+        .menu h2 {
+            margin-left: 20px;
+            margin-right: 82px;
+        }
+
+        /* Định dạng khung bên trái (sidebar) */
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            color: blue;
+            padding: 20px;
+            box-sizing: border-box;
+            float: left;
+        }
+
+        /* Định dạng menu dọc */
+        .vertical-menu {
+            width: 100%;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: blue;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #808080;
+        }
+
+        /* Định dạng phần nội dung bên phải */
+        .content {
+            margin-left: 270px;
+            /* Để tạo khoảng cách giữa sidebar và content */
+            padding: 20px;
+            background-color: #EEEEEE;
+
+
+        }
+
+
+
+        /* Định dạng ô nhập đơn vị phí và năm học */
+        .input-container {
+            margin-bottom: 20px;
+
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+        }
+
+        select,
+        input[type="text"] {
+            width: 20%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        .message.success {
+            color: green;
+        }
+        .message.error {
+            color: red;
+    </style>
+</head>
+
+<body>
+    <div class="menu">
+        <h2>Phòng đào tạo </h2>
+        <h2><input type="search" id="search" name="search" placeholder="Quick search" style="width: 981px; height: 36px;"></h2>
+    </div>
+    <!-- Khung bên trái (sidebar) -->
+    <div class="sidebar">
+        <div class="vertical-menu">
+            <a href="{{ url_for('them_don_vi_phi_page') }}" class="menu-item">Thiết lập đơn vị tính</a>
+            <a href="{{ url_for('them_mon_hoc') }}" class="menu-item">Quản lý môn học</a>
+            <a href="{{url_for ('them_sinh_vien_page') }}" class="menu-item">Thêm Sinh Viên</a>
+            <a href="{{ url_for ('them_dang_ki_mon_hoc_page')}}" class="menu-item">Quản lý kì học</a>
+            <a href="{{url_for ('quan_ly_hoc_phi')}}" class="menu-item">Quản lý học phí</a>
+        </div>
+    </div>
+
+    <!-- Nội dung bên phải (content) -->
+    <div class="content">
+        <h1>Sinh viên</h1>
+        <div class="input-container">
+            <label for="StudentCode">Mã sinh viên:</label>
+            <input type="text" id="StudentCode" name="StudentCode" placeholder="Nhập mã sinh viên">
+        </div>
+        <div class="input-container">
+            <label for="Name">Tên sinh viên:</label>
+            <input type="text" id="Name" name="Name" placeholder="Nhập tên sinh viên">
+        </div>
+        <form id="themDonViPhiForm" action="javascript:void(0);">
+            <button type="button" onclick="themDonViPhi()" style="cursor: pointer">Thêm sinh viên</button>
+        </form>
+        <div id="message" class="message" style="margin-top: 10px"></div>
+    </div>
+</body>
+<script>
+    function themDonViPhi() {
+        const StudentCode = document.getElementById('StudentCode').value;
+        const Name = document.getElementById('Name').value;
+        const data = new URLSearchParams();
+        data.append('ma_sinh_vien', StudentCode);
+        data.append('ten_sinh_vien', Name);
+        fetch('/them_sinh_vien', {
+            method: 'POST',
+            body: data,
+        })
+        .then(response => response.json())
+        .then(data => {
+            const messageElement = document.getElementById('message');
+
+
+            if (data.error) {
+                messageElement.textContent = data.error;
+                messageElement.className = 'message error';
+            } else {
+                messageElement.textContent = data.message;
+                messageElement.className = 'message success';
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            const messageElement = document.getElementById('message');
+            messageElement.textContent = 'Có lỗi xảy ra khi thêm đơn vị phí.';
+            messageElement.className = 'message error';
+        });
+    }
+</script>
+</html>

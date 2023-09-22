@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ky hoc</title>
+    <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+        }
+
+        .menu {
+            display: flex;
+            align-items: center;
+            background-color: white;
+
+        }
+
+        .menu h2 {
+            margin-left: 20px;
+            margin-right: 82px;
+        }
+
+        /* Định dạng khung bên trái (sidebar) */
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            color: blue;
+            padding: 20px;
+            box-sizing: border-box;
+            float: left;
+        }
+
+        /* Định dạng menu dọc */
+        .vertical-menu {
+            width: 100%;
+        }
+
+        .menu-item {
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: blue;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #808080;
+        }
+
+        /* Định dạng phần nội dung bên phải */
+        .content {
+            margin-left: 270px;
+            /* Để tạo khoảng cách giữa sidebar và content */
+            padding: 20px;
+            background-color: #EEEEEE;
+
+
+        }
+
+        /* Định dạng ô nhập thông tin môn học */
+        .input-container {
+
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            flex: 1;
+            margin-right: 10px;
+
+        }
+
+        input[type="text"] {
+            flex: 3;
+            padding: 10px;
+            margin-right: 30px
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 50px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #333;
+            color: #fff;
+        }
+        .message.error {
+            color: red;
+    </style>
+</head>
+
+<body>
+    <div class="menu">
+        <h2>Phòng đào tạo </h2>
+        <h2><input type="search" id="search" name="search" placeholder="Quick search" style="width: 981px; height: 36px;"></h2>
+    </div>
+    <!-- Khung bên trái (sidebar) -->
+    <div class="sidebar">
+        <div class="vertical-menu">
+            <a href="{{ url_for('them_don_vi_phi_page') }}" class="menu-item">Thiết lập đơn vị tính</a>
+            <a href="{{ url_for('them_mon_hoc') }}" class="menu-item">Quản lý môn học</a>
+            <a href="{{url_for ('them_sinh_vien_page') }}" class="menu-item">Thêm Sinh Viên</a>
+            <a href="{{ url_for ('them_dang_ki_mon_hoc_page')}}" class="menu-item">Quản lý kì học</a>
+            <a href="{{url_for ('quan_ly_hoc_phi')}}" class="menu-item">Quản lý học phí</a>
+        </div>
+    </div>
+
+    <!-- Nội dung bên phải (content) -->
+    <div class="content">
+
+        <h1>Quản lý học phí</h1>
+        <form id="dangKiMonHocForm">
+            <div class="input-container">
+                <label for="studentID">Mã Sinh Viên:</label>
+                <input type="text" id="studentID" name="studentID" placeholder="Nhập mã sinh viên" >
+                <label for="courseCode">Học kỳ:</label>
+                <input type="text" id="courseCode" name="hoc_ky" placeholder="Nhập học kỳ">
+                <label for="academicYear">Năm học:</label>
+                <select id="academicYear" name="academicYear" style="padding: 10px; width: 120px;">
+                    <!-- Tạo danh sách năm học từ API hoặc cơ sở dữ liệu -->
+                </select>
+            </div>
+            <button type="button" onclick="layHocPhi()" style="padding: 10px; cursor: pointer;">Thông tin học phí</button>
+        </form>
+    <h2>Thông tin học phí</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Mã Môn Học</th>
+                <th>Tên Môn Học</th>
+                <th>Học Kỳ</th>
+                <th>Số tín chỉ</th>
+                <th>Hệ số môn</th>
+                <th>Số tiền</th>
+            </tr>
+        </thead>
+        <tbody id="danhSachMonHocTableBody"></tbody>
+    </table>
+        <div id="tongHocPhi" style="margin-top: 10px; font-weight: bold;">Tổng học phí: 0.0</div>
+        <div id="message" class="message" style="margin-top: 10px"></div>
+    </div>
+</body>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+            // Gọi API để lấy danh sách năm học từ bảng don_vi_phi
+            fetch("/lay_danh_sach_nam_hoc")
+                .then(response => response.json())
+                .then(data => {
+                    var academicYearSelect = document.getElementById("academicYear");
+
+                    // Tạo các tùy chọn <option> từ dữ liệu
+                    data.nam_hoc_list.forEach(function (namHoc) {
+                        var option = document.createElement("option");
+                        option.value = namHoc.id;
+                        option.textContent = namHoc.nam_hoc;
+                        academicYearSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error("Lỗi:", error);
+                });
+        });
+    function layHocPhi() {
+    var studentID = document.getElementById("studentID").value;
+    var hoc_ky = document.getElementById("courseCode").value;
+    var nam_hoc = document.getElementById("academicYear").value;
+
+    fetch(`/hoc_phi/${studentID}?hoc_ky=${hoc_ky}&nam_hoc=${nam_hoc}`)
+        .then(response => response.json())
+        .then(data => {
+            const messageElement = document.getElementById('message');
+            var danhSachMonHocTableBody = document.getElementById("danhSachMonHocTableBody");
+            var tongHocPhiElement = document.getElementById("tongHocPhi");
+            danhSachMonHocTableBody.innerHTML = "";
+            var tongHocPhi = 0.0;
+            if (data.error){
+                tongHocPhiElement.textContent = "Tổng học phí: " + tongHocPhi.toFixed(1);
+                messageElement.textContent = data.error;
+                messageElement.className = 'message error';
+            }
+            else{
+                messageElement.textContent = ''
+                messageElement.className = 'message success';
+            }
+            data.hoc_phi_tung_mon.forEach(function (monHoc) {
+                // Tạo dòng cho mỗi môn học
+                var row = danhSachMonHocTableBody.insertRow();
+                var cell1 = row.insertCell(0);
+                var cell2 = row.insertCell(1);
+                var cell3 = row.insertCell(2);
+                var cell4 = row.insertCell(3);
+                var cell5 = row.insertCell(4);
+                var cell6 = row.insertCell(5);
+
+                cell1.innerHTML = monHoc.ma_mon_hoc;
+                cell2.innerHTML = monHoc.ten_mon;
+                cell3.innerHTML = hoc_ky;
+                cell4.innerHTML = monHoc.so_tin_chi;
+                cell5.innerHTML = monHoc.he_so_mon;
+                cell6.innerHTML = monHoc.hoc_phi;
+
+                tongHocPhi += monHoc.hoc_phi;
+            });
+
+            // Hiển thị tổng học phí
+            tongHocPhiElement.textContent = "Tổng học phí: " + tongHocPhi.toFixed(2);
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+        });
+}
+
+</script>
+</html>
